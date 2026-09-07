@@ -42,6 +42,12 @@ header p{opacity:.75;font-size:14px}
 .gatebox p{font-size:13px;opacity:.75;margin-bottom:14px;line-height:2}
 .gatebox input{width:100%;background:#00000050;border:1px solid #ffffff30;color:#fff;border-radius:12px;padding:12px;font-size:18px;text-align:center;letter-spacing:6px;margin-bottom:12px}
 .gatebox button{width:100%;background:linear-gradient(135deg,#ff7eb3,#ff4d6d);border:none;color:#fff;border-radius:12px;padding:12px;font-size:15px;cursor:pointer;font-weight:bold}
+.chatlog{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;padding:4px}
+.msg{max-width:85%;border-radius:14px;padding:9px 12px;font-size:13px;line-height:1.9}
+.msg.mine{align-self:flex-start;background:#ff7eb333;border:1px solid #ff7eb355}
+.msg.theirs{align-self:flex-end;background:#ffffff14;border:1px solid #ffffff22}
+.msg .nm{font-size:11px;opacity:.65;margin-bottom:2px}
+.msg .tm{font-size:10px;opacity:.5;margin-top:2px}
 footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </style>
 </head>
@@ -54,7 +60,7 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </div></div>
 <div class="wrap">
 <header>
-<h1>💑 رقیه و محمدحسین یاب</h1>
+<h1>رقیه و محمدحسین یاب</h1>
 <p>هر وقت خواستی چیزی به اون‌یکی بگی، اینجا بگو 💬</p>
 <div class="conn"><span class="dot" id="dot"></span><span id="connTx">در حال اتصال…</span></div>
 </header>
@@ -71,9 +77,13 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 <div class="card" id="cardR"><h3>🙋‍♀️ رقیه</h3><div class="st" id="stR">…</div><div class="tx" id="txR"></div><div class="tm" id="tmR"></div></div>
 </div>
 <div class="panel">
+<h3>💬 حرف‌های اخیر <span id="typing" style="font-size:12px;opacity:.7"></span></h3>
+<div class="chatlog" id="chatlog"></div>
+</div>
+<div class="panel">
 <h3>📢 وضعیت من رو اعلام کن:</h3>
 <div class="chips" id="chips"></div>
-<div class="row"><input id="custom" placeholder="یا خودت بنویس… (مثلاً: نیم ساعت دیگه زنگ می‌زنم)"><button onclick="sendCustom()">ثبت ✅</button></div>
+<div class="row"><input id="custom" oninput="typing()" placeholder="یا خودت بنویس… (مثلاً: نیم ساعت دیگه زنگ می‌زنم)"><button onclick="sendCustom()">ثبت ✅</button></div>
 </div>
 <footer>فقط مال ما دوتاست 🤍</footer>
 </div>
@@ -123,22 +133,30 @@ document.getElementById("adminBtns").innerHTML=h;
 }else{ab.style.display="none";}
 }
 function render(w,d){const W=w==="m"?"M":"R";document.getElementById("st"+W).textContent=d.status||"—";document.getElementById("tx"+W).textContent=d.note||"";document.getElementById("tm"+W).textContent=d.at?ago(d.at):"";}
+let log=[];let lastType=0;let unread=0;let typeTimer=null;
+function beep(){try{const C=window.AudioContext||window.webkitAudioContext;const c=new C();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(c.currentTime+0.25);}catch(e){}}
+function addLog(d,silent){if(!d.status&&!d.note)return;log.push(d);if(log.length>30)log.shift();renderLog();if(!silent&&d.who!==me){beep();unread++;document.title="("+fa(unread)+") یاب 🤍";}}
+function renderLog(){const el=document.getElementById("chatlog");if(!el)return;el.innerHTML=log.map(d=>{const mine=d.who===me;const nm=d.who==="m"?"🙋‍♂️ محمدحسین":"🙋‍♀️ رقیه";return '<div class="msg '+(mine?"mine":"theirs")+'"><div class="nm">'+nm+'</div><div class="bd">'+(d.status||"")+(d.note?"<br>"+d.note:"")+'</div><div class="tm">'+(d.at?ago(d.at):"")+'</div></div>';}).join("");el.scrollTop=el.scrollHeight;}
+function typing(){if(!me)return;const n=Date.now();if(n-lastType<3000)return;lastType=n;pub({type:"typing",who:me,device:device});}
+function showTyping(m){if(m.device===device||m.who===me)return;const nm=m.who==="m"?"محمدحسین":"رقیه";const el=document.getElementById("typing");if(!el)return;el.textContent="✍️ "+nm+" در حال نوشتن است…";clearTimeout(typeTimer);typeTimer=setTimeout(()=>{el.textContent="";},4000);}
+document.addEventListener("click",()=>{unread=0;document.title="رقیه و محمدحسین یاب";});
 async function publish(status,note){if(!me){alert("اول بگو کی هستی 👆");return;}
-await pub({who:me,status:status,note:note||""});
+await pub({who:me,device:device,status:status,note:note||""});
 document.getElementById("custom").value="";}
 function sendCustom(){const v=document.getElementById("custom").value.trim();if(!v)return;publish("✏️ پیام",v);}
 document.getElementById("chips").innerHTML=PRESETS.map(p=>`<button onclick='publish(${JSON.stringify(p)})'>${p}</button>`).join("");
 async function loadHist(){try{const r=await fetch("https://ntfy.sh/"+TOPIC+"/json?poll=1");const t=await r.text();t.trim().split("\n").forEach(l=>{try{const j=JSON.parse(l);if(!j.message)return;const d=JSON.parse(j.message);
 if(d.type==="claim"&&(d.who==="m"||d.who==="r")){claims[d.who]={device:d.device,at:d.at};}
 else if(d.type==="release"&&(d.who==="m"||d.who==="r")){claims[d.who]=null;}
-else if(d.who==="m"||d.who==="r"){render(d.who,d);}
+else if(d.who==="m"||d.who==="r"){render(d.who,d);addLog(d,true);}
 }catch(e){}});
 if(me&&!claims[me]){claims[me]={device:device,at:Date.now()};pub({type:"claim",who:me,device:device});}
 paintWho();}catch(e){}}
 function live(){try{const es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.event!=="message"||!d.message)return;const m=JSON.parse(d.message);
 if(m.type==="claim"&&(m.who==="m"||m.who==="r")){claims[m.who]={device:m.device,at:m.at};paintWho();}
 else if(m.type==="release"&&(m.who==="m"||m.who==="r")){claims[m.who]=null;paintWho();}
-else if(m.who==="m"||m.who==="r"){render(m.who,m);}
+else if(m.type==="typing"){showTyping(m);}
+else if(m.who==="m"||m.who==="r"){render(m.who,m);addLog(m,false);}
 }catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
 paintWho();loadHist();live();setInterval(loadHist,60000);
 </script>
