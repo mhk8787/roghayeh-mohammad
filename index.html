@@ -51,6 +51,10 @@ header p{opacity:.75;font-size:14px}
 .msg .q{font-size:11px;opacity:.75;background:#00000030;border-radius:8px;padding:4px 8px;margin-bottom:4px;border-right:2px solid #ff7eb3}
 .msg .ops{margin-top:4px;opacity:.8}
 .msg .ops button{background:none;border:none;font-size:13px;cursor:pointer;margin-left:6px}
+.msg .bigstk{font-size:46px;line-height:1.5;text-align:center}
+#stkPanel{display:none;background:#ffffff10;border:1px solid #ffffff22;border-radius:12px;padding:10px;margin-bottom:8px}
+#stkPanel button{background:none;border:none;font-size:30px;cursor:pointer;padding:4px}
+#stkPanel button:hover{transform:scale(1.25)}
 #party{position:fixed;inset:0;background:#140b29ee;display:none;align-items:center;justify-content:center;z-index:100;overflow:hidden}
 .gift{background:#ffffff14;border:1px solid #ff7eb3;border-radius:20px;padding:30px 24px;max-width:320px;text-align:center;z-index:2;line-height:2.2;font-size:16px}
 .gift button{margin-top:14px;background:linear-gradient(135deg,#ff7eb3,#ff4d6d);border:none;color:#fff;border-radius:12px;padding:11px 26px;font-size:15px;cursor:pointer;font-weight:bold}
@@ -106,8 +110,9 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 <div class="panel">
 <h3>📢 وضعیت من رو اعلام کن:</h3>
 <div class="chips" id="chips"></div>
+<div id="stkPanel"></div>
 <div id="composeBar" style="display:none;background:#ffffff14;border:1px solid #ff7eb355;border-radius:10px;padding:7px 10px;font-size:12px;margin-bottom:8px"></div>
-<div class="row"><input id="custom" oninput="typing()" placeholder="یا خودت بنویس… (مثلاً: نیم ساعت دیگه زنگ می‌زنم)"><button onclick="sendCustom()">ثبت ✅</button></div>
+<div class="row"><input id="custom" oninput="typing()" placeholder="یا خودت بنویس… (مثلاً: نیم ساعت دیگه زنگ می‌زنم)"><button onclick="toggleStk()" style="background:#ffffff18;border:1px solid #ffffff25;border-radius:12px;padding:11px 13px;font-size:17px;cursor:pointer">😀</button><button onclick="sendCustom()">ثبت ✅</button></div>
 <div class="row"><button onclick="sendVow()" style="flex:1;background:linear-gradient(135deg,#4ade80,#22d3ee);border:none;color:#06281f;border-radius:12px;padding:11px;font-size:15px;cursor:pointer;font-weight:bold">🤝 قول دادن</button></div>
 </div>
 <footer>فقط مال ما دوتاست 🤍</footer>
@@ -172,14 +177,17 @@ document.getElementById("adminBtns").innerHTML=h;
 function render(w,d){const W=w==="m"?"M":"R";document.getElementById("st"+W).textContent=d.status||"—";document.getElementById("tx"+W).textContent=d.note||"";document.getElementById("tm"+W).textContent=d.at?ago(d.at):"";}
 let log=[];let lastType=0;let unread=0;let typeTimer=null;let replyTo=null;let editingId=null;let msgs={};
 function beep(){try{const C=window.AudioContext||window.webkitAudioContext;const c=new C();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(c.currentTime+0.25);}catch(e){}}
-function addMsg(d,silent){if(!d.status&&!d.note)return;if(!d.id)d.id="h"+d.at+d.who+String(d.status||"").length;if(msgs[d.id])return;msgs[d.id]=d;log.push(d);if(log.length>30)log.shift();renderLog();if(!silent&&d.who!==me){beep();unread++;document.title="("+fa(unread)+") چت‌روم 🤍";}}
+function addMsg(d,silent){if(!d.status&&!d.note&&!d.sticker)return;if(!d.id)d.id="h"+d.at+d.who+String(d.status||"").length;if(msgs[d.id])return;msgs[d.id]=d;log.push(d);if(log.length>30)log.shift();renderLog();if(!silent&&d.who!==me){beep();unread++;document.title="("+fa(unread)+") چت‌روم 🤍";}}
 function applyEdit(t,s,n){const m=msgs[t];if(!m)return;m.status=s;m.note=n||"";renderLog();}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function renderLog(){const el=document.getElementById("chatlog");if(!el)return;el.innerHTML=log.map(d=>{const mine=d.who===me;const nm=d.who==="m"?"🙋‍♂️ محمدحسین":"🙋‍♀️ رقیه";const q=d.reply?'<div class="q">↩️ '+(d.reply.who==="m"?"محمدحسین":"رقیه")+": "+esc(d.reply.text)+'</div>':"";const ops='<div class="ops"><button onclick="doReply(\''+d.id+'\')">↩️</button>'+(mine?'<button onclick="doEdit(\''+d.id+'\')">✏️</button>':"")+'</div>';return '<div class="msg '+(mine?"mine":"theirs")+'"><div class="nm">'+nm+'</div>'+q+'<div class="bd">'+esc(d.status||"")+(d.note?"<br>"+esc(d.note):"")+'</div><div class="tm">'+(d.at?ago(d.at):"")+'</div>'+ops+'</div>';}).join("");el.scrollTop=el.scrollHeight;}
+function renderLog(){const el=document.getElementById("chatlog");if(!el)return;el.innerHTML=log.map(d=>{const mine=d.who===me;const nm=d.who==="m"?"🙋‍♂️ محمدحسین":"🙋‍♀️ رقیه";const q=d.reply?'<div class="q">↩️ '+(d.reply.who==="m"?"محمدحسین":"رقیه")+": "+esc(d.reply.text)+'</div>':"";const ops='<div class="ops"><button onclick="doReply(\''+d.id+'\')">↩️</button>'+((mine&&(d.status||d.note))?'<button onclick="doEdit(\''+d.id+'\')">✏️</button>':"")+'</div>';const body=d.sticker?'<div class="bigstk">'+esc(d.sticker)+'</div>':'<div class="bd">'+esc(d.status||"")+(d.note?"<br>"+esc(d.note):"")+'</div>';return '<div class="msg '+(mine?"mine":"theirs")+'"><div class="nm">'+nm+'</div>'+q+body+'<div class="tm">'+(d.at?ago(d.at):"")+'</div>'+ops+'</div>';}).join("");el.scrollTop=el.scrollHeight;}
 function showBar(h){const b=document.getElementById("composeBar");b.style.display="block";b.innerHTML=h+' <button onclick="cancelCompose()" style="background:none;border:none;color:#fff;cursor:pointer">✖</button>';}
-function doReply(id){const m=msgs[id];if(!m)return;replyTo={who:m.who,text:((m.status||"")+" "+(m.note||"")).trim().slice(0,50)};editingId=null;showBar("↩️ در جواب "+(m.who==="m"?"محمدحسین":"رقیه")+": "+esc(replyTo.text));}
+function doReply(id){const m=msgs[id];if(!m)return;replyTo={who:m.who,text:((m.sticker||m.status||"")+" "+(m.note||"")).trim().slice(0,50)};editingId=null;showBar("↩️ در جواب "+(m.who==="m"?"محمدحسین":"رقیه")+": "+esc(replyTo.text));}
 function doEdit(id){const m=msgs[id];if(!m||m.who!==me)return;editingId=id;replyTo=null;document.getElementById("custom").value=(m.note||m.status||"");showBar("✏️ در حال ویرایش پیام…");}
 function cancelCompose(){replyTo=null;editingId=null;const b=document.getElementById("composeBar");if(b)b.style.display="none";}
+const STICKERS=["💖","❤️","😍","😘","💕","💋","🌹","💐","🥰","😂","🤣","😜","😎","🤪","🎉","🚀","🌟","🔥","👏","🍫","🦋","💯","😭","🥺"];
+async function sendSticker(s){if(!me){alert("اول بگو کی هستی 👆");return;}const m={type:"msg",who:me,device:device,id:"m"+Date.now().toString(36)+Math.floor(Math.random()*999),status:"",note:"",sticker:s,reply:replyTo};await pub(m);addMsg(m,false);cancelCompose();toggleStk(false);}
+function toggleStk(f){const p=document.getElementById("stkPanel");if(!p)return;const show=typeof f==="boolean"?f:p.style.display!=="block";p.style.display=show?"block":"none";}
 function typing(){if(!me)return;const n=Date.now();if(n-lastType<3000)return;lastType=n;pub({type:"typing",who:me,device:device});}
 function showTyping(m){if(m.device===device||m.who===me)return;const nm=m.who==="m"?"محمدحسین":"رقیه";const el=document.getElementById("typing");if(!el)return;el.textContent="✍️ "+nm+" در حال نوشتن است…";clearTimeout(typeTimer);typeTimer=setTimeout(()=>{el.textContent="";},4000);}
 document.addEventListener("click",()=>{unread=0;document.title="چت‌روم مخصوص رقیه و محمدحسین";});
@@ -210,6 +218,7 @@ else if(m.type==="typing"){showTyping(m);}
 else if(m.type==="edit"){applyEdit(m.target,m.status,m.note||"");}
 else if(m.who==="m"||m.who==="r"){render(m.who,m);addMsg(m,false);}
 }catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
+document.getElementById("stkPanel").innerHTML=STICKERS.map(s=>'<button onclick="sendSticker(\''+s+'\')">'+s+'</button>').join("");
 paintWho();loadHist();live();setInterval(loadHist,60000);
 </script>
 </body>
