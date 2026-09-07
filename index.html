@@ -18,6 +18,7 @@ header p{opacity:.75;font-size:14px}
 .who{display:flex;gap:10px;margin:14px 0}
 .who button{flex:1;padding:13px;border-radius:14px;border:2px solid transparent;background:#ffffff18;color:#fff;font-size:16px;cursor:pointer}
 .who button.sel{border-color:#ff7eb3;background:#ff7eb322}
+.who button:disabled{opacity:.35;cursor:not-allowed}
 .cards{display:flex;flex-direction:column;gap:12px;margin:12px 0}
 .card{background:#ffffff14;border:1px solid #ffffff22;border-radius:16px;padding:14px}
 .card h3{font-size:16px;margin-bottom:6px}
@@ -27,16 +28,30 @@ header p{opacity:.75;font-size:14px}
 .card.me{border-color:#ff7eb3}
 .panel{background:#ffffff10;border:1px solid #ffffff22;border-radius:16px;padding:14px;margin-top:6px}
 .panel h3{font-size:15px;margin-bottom:10px}
+.adminbox{border-color:#ffd166;background:#ffd16614}
+.adminbox button{background:#ffd16622;border:1px solid #ffd166;color:#ffe3a3;border-radius:12px;padding:9px 14px;font-size:13px;cursor:pointer;margin:4px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips button{background:#ffffff18;border:1px solid #ffffff25;color:#fff;border-radius:20px;padding:8px 13px;font-size:13px;cursor:pointer}
 .chips button:hover{background:#ff7eb344}
 .row{display:flex;gap:8px;margin-top:10px}
 .row input{flex:1;background:#00000040;border:1px solid #ffffff25;color:#fff;border-radius:12px;padding:11px;font-size:14px}
 .row button{background:linear-gradient(135deg,#ff7eb3,#ff4d6d);border:none;color:#fff;border-radius:12px;padding:11px 18px;font-size:14px;cursor:pointer;font-weight:bold}
+#gate{position:fixed;inset:0;background:#140b29f2;display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+.gatebox{background:#ffffff12;border:1px solid #ffffff2a;border-radius:18px;padding:26px 20px;max-width:340px;width:100%;text-align:center}
+.gatebox h2{font-size:20px;margin-bottom:8px}
+.gatebox p{font-size:13px;opacity:.75;margin-bottom:14px;line-height:2}
+.gatebox input{width:100%;background:#00000050;border:1px solid #ffffff30;color:#fff;border-radius:12px;padding:12px;font-size:18px;text-align:center;letter-spacing:6px;margin-bottom:12px}
+.gatebox button{width:100%;background:linear-gradient(135deg,#ff7eb3,#ff4d6d);border:none;color:#fff;border-radius:12px;padding:12px;font-size:15px;cursor:pointer;font-weight:bold}
 footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </style>
 </head>
 <body>
+<div id="gate"><div class="gatebox">
+<h2>🔒 ورود خصوصی</h2>
+<p>این صفحه فقط مال محمدحسین و رقیه‌ست.<br>کد ورود رو بزن:</p>
+<input id="gateInput" inputmode="numeric" maxlength="12" placeholder="••••">
+<button onclick="checkGate()">ورود ✅</button>
+</div></div>
 <div class="wrap">
 <header>
 <h1>💑 رقیه و محمدحسین یاب</h1>
@@ -46,6 +61,10 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 <div class="who">
 <button id="btnM" onclick="iam('m')">🙋‍♂️ من محمدحسینم</button>
 <button id="btnR" onclick="iam('r')">🙋‍♀️ من رقیه‌ام</button>
+</div>
+<div class="panel adminbox" id="adminBox" style="display:none">
+<h3>👑 پنل مدیر (محمدحسین)</h3>
+<div id="adminBtns"></div>
 </div>
 <div class="cards">
 <div class="card" id="cardM"><h3>🙋‍♂️ محمدحسین</h3><div class="st" id="stM">…</div><div class="tx" id="txM"></div><div class="tm" id="tmM"></div></div>
@@ -60,21 +79,67 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </div>
 <script>
 const TOPIC="mhk-rog-yab-x7q2k9zm4p";
+const GATE="0000";
 const PRESETS=["💚 خوبم، پیام بده","🔕 الان پیام نده","🚶 بیرونم، برمی‌گردم","📚 سرم شلوغه","😴 استراحت می‌کنم","💬 بیا حرف بزنیم","❤️ دلم برات تنگ شده","🆘 مشکلی پیش اومده، زنگ بزن"];
+let device=localStorage.getItem("yab_device")||"";
+if(!device){device="d"+Math.random().toString(36).slice(2,10);localStorage.setItem("yab_device",device);}
 let me=localStorage.getItem("yab_me")||"";
 let locked=localStorage.getItem("yab_locked")==="1";
+let claims={m:null,r:null};
 function fa(n){return String(n).replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);}
 function ago(t){if(!t)return "";const s=Math.floor((Date.now()-t)/1000);if(s<60)return "لحظاتی پیش";if(s<3600)return fa(Math.floor(s/60))+" دقیقه پیش";if(s<86400)return fa(Math.floor(s/3600))+" ساعت پیش";return fa(Math.floor(s/86400))+" روز پیش";}
-function iam(w){if(locked){alert("هویتت قفل شده 🔒 تو "+(me==="m"?"محمدحسین":"رقیه")+" هستی");return;}me=w;locked=true;localStorage.setItem("yab_me",w);localStorage.setItem("yab_locked","1");paintWho();}
-function paintWho(){document.getElementById("btnM").classList.toggle("sel",me==="m");document.getElementById("btnR").classList.toggle("sel",me==="r");document.getElementById("cardM").classList.toggle("me",me==="m");document.getElementById("cardR").classList.toggle("me",me==="r");if(locked&&me){document.getElementById("btnM").style.opacity=me==="m"?"1":".35";document.getElementById("btnR").style.opacity=me==="r"?"1":".35";}}
+function checkGate(){const v=document.getElementById("gateInput").value.trim();if(v===GATE){sessionStorage.setItem("yab_ok","1");document.getElementById("gate").style.display="none";}else{alert("کد اشتباهه 🔒");}}
+if(sessionStorage.getItem("yab_ok")==="1"){document.getElementById("gate").style.display="none";}
+async function pub(o){o.at=Date.now();await fetch("https://ntfy.sh/"+TOPIC,{method:"PUT",body:JSON.stringify(o)});}
+function iam(w){
+if(locked){alert("هویتت قفل شده 🔒 تو "+(me==="m"?"محمدحسین":"رقیه")+" هستی");return;}
+if(claims[w]&&claims[w].device!==device){alert("این اسم قبلاً گرفته شده 🔒 فقط صاحبش می‌تونه استفاده کنه");return;}
+me=w;locked=true;localStorage.setItem("yab_me",w);localStorage.setItem("yab_locked","1");
+claims[w]={device:device,at:Date.now()};
+pub({type:"claim",who:w,device:device});
+paintWho();
+}
+async function release(w){if(me!=="m")return;claims[w]=null;await pub({type:"release",who:w});paintWho();}
+function isAdmin(){return me==="m"&&locked;}
+function paintWho(){
+document.getElementById("btnM").classList.toggle("sel",me==="m");
+document.getElementById("btnR").classList.toggle("sel",me==="r");
+document.getElementById("cardM").classList.toggle("me",me==="m");
+document.getElementById("cardR").classList.toggle("me",me==="r");
+const tm=claims.m&&claims.m.device!==device&&me!=="m";
+const tr=claims.r&&claims.r.device!==device&&me!=="r";
+document.getElementById("btnM").disabled=!!tm;
+document.getElementById("btnR").disabled=!!tr;
+if(tm)document.getElementById("btnM").textContent="🔒 محمدحسین (گرفته شده)";
+if(tr)document.getElementById("btnR").textContent="🔒 رقیه (گرفته شده)";
+const ab=document.getElementById("adminBox");
+if(isAdmin()){ab.style.display="block";
+let h="";
+h+="<div>محمدحسین: "+(claims.m?"گرفته شده ✅":"آزاد")+"</div>";
+h+="<div>رقیه: "+(claims.r?"گرفته شده ✅":"آزاد")+"</div>";
+if(claims.m)h+='<button onclick="release(\'m\')">آزاد کردن محمدحسین</button>';
+if(claims.r)h+='<button onclick="release(\'r\')">آزاد کردن رقیه</button>';
+document.getElementById("adminBtns").innerHTML=h;
+}else{ab.style.display="none";}
+}
 function render(w,d){const W=w==="m"?"M":"R";document.getElementById("st"+W).textContent=d.status||"—";document.getElementById("tx"+W).textContent=d.note||"";document.getElementById("tm"+W).textContent=d.at?ago(d.at):"";}
 async function publish(status,note){if(!me){alert("اول بگو کی هستی 👆");return;}
-await fetch("https://ntfy.sh/"+TOPIC,{method:"PUT",body:JSON.stringify({who:me,status:status,note:note||"",at:Date.now()})});
+await pub({who:me,status:status,note:note||""});
 document.getElementById("custom").value="";}
 function sendCustom(){const v=document.getElementById("custom").value.trim();if(!v)return;publish("✏️ پیام",v);}
-document.getElementById("chips").innerHTML=PRESETS.map((p,i)=>`<button onclick="publish(${JSON.stringify(p)})">${p}</button>`).join("");
-async function loadHist(){try{const r=await fetch("https://ntfy.sh/"+TOPIC+"/json?poll=1");const t=await r.text();t.trim().split("\n").forEach(l=>{try{const j=JSON.parse(l);if(j.message){const d=JSON.parse(j.message);if(d.who==="m"||d.who==="r")render(d.who,d);}}catch(e){}});}catch(e){}}
-function live(){try{const es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.event==="message"&&d.message){const m=JSON.parse(d.message);if(m.who==="m"||m.who==="r")render(m.who,m);}}catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
+document.getElementById("chips").innerHTML=PRESETS.map(p=>`<button onclick='publish(${JSON.stringify(p)})'>${p}</button>`).join("");
+async function loadHist(){try{const r=await fetch("https://ntfy.sh/"+TOPIC+"/json?poll=1");const t=await r.text();t.trim().split("\n").forEach(l=>{try{const j=JSON.parse(l);if(!j.message)return;const d=JSON.parse(j.message);
+if(d.type==="claim"&&(d.who==="m"||d.who==="r")){claims[d.who]={device:d.device,at:d.at};}
+else if(d.type==="release"&&(d.who==="m"||d.who==="r")){claims[d.who]=null;}
+else if(d.who==="m"||d.who==="r"){render(d.who,d);}
+}catch(e){}});
+if(me&&!claims[me]){claims[me]={device:device,at:Date.now()};pub({type:"claim",who:me,device:device});}
+paintWho();}catch(e){}}
+function live(){try{const es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.event!=="message"||!d.message)return;const m=JSON.parse(d.message);
+if(m.type==="claim"&&(m.who==="m"||m.who==="r")){claims[m.who]={device:m.device,at:m.at};paintWho();}
+else if(m.type==="release"&&(m.who==="m"||m.who==="r")){claims[m.who]=null;paintWho();}
+else if(m.who==="m"||m.who==="r"){render(m.who,m);}
+}catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
 paintWho();loadHist();live();setInterval(loadHist,60000);
 </script>
 </body>
