@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>💑 رقیه و محمدحسین یاب</title>
+<title>چت‌روم مخصوص رقیه و محمدحسین 🤍</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Vazirmatn,Tahoma,sans-serif}
@@ -60,7 +60,7 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </div></div>
 <div class="wrap">
 <header>
-<h1>رقیه و محمدحسین یاب</h1>
+<h1>چت‌روم مخصوص رقیه و محمدحسین</h1>
 <p>هر وقت خواستی چیزی به اون‌یکی بگی، اینجا بگو 💬</p>
 <div class="conn"><span class="dot" id="dot"></span><span id="connTx">در حال اتصال…</span></div>
 </header>
@@ -135,11 +135,11 @@ document.getElementById("adminBtns").innerHTML=h;
 function render(w,d){const W=w==="m"?"M":"R";document.getElementById("st"+W).textContent=d.status||"—";document.getElementById("tx"+W).textContent=d.note||"";document.getElementById("tm"+W).textContent=d.at?ago(d.at):"";}
 let log=[];let lastType=0;let unread=0;let typeTimer=null;
 function beep(){try{const C=window.AudioContext||window.webkitAudioContext;const c=new C();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.08;o.start();o.stop(c.currentTime+0.25);}catch(e){}}
-function addLog(d,silent){if(!d.status&&!d.note)return;log.push(d);if(log.length>30)log.shift();renderLog();if(!silent&&d.who!==me){beep();unread++;document.title="("+fa(unread)+") یاب 🤍";}}
+function addLog(d,silent){if(!d.status&&!d.note)return;log.push(d);if(log.length>30)log.shift();renderLog();if(!silent&&d.who!==me){beep();unread++;document.title="("+fa(unread)+") چت‌روم 🤍";}}
 function renderLog(){const el=document.getElementById("chatlog");if(!el)return;el.innerHTML=log.map(d=>{const mine=d.who===me;const nm=d.who==="m"?"🙋‍♂️ محمدحسین":"🙋‍♀️ رقیه";return '<div class="msg '+(mine?"mine":"theirs")+'"><div class="nm">'+nm+'</div><div class="bd">'+(d.status||"")+(d.note?"<br>"+d.note:"")+'</div><div class="tm">'+(d.at?ago(d.at):"")+'</div></div>';}).join("");el.scrollTop=el.scrollHeight;}
 function typing(){if(!me)return;const n=Date.now();if(n-lastType<3000)return;lastType=n;pub({type:"typing",who:me,device:device});}
 function showTyping(m){if(m.device===device||m.who===me)return;const nm=m.who==="m"?"محمدحسین":"رقیه";const el=document.getElementById("typing");if(!el)return;el.textContent="✍️ "+nm+" در حال نوشتن است…";clearTimeout(typeTimer);typeTimer=setTimeout(()=>{el.textContent="";},4000);}
-document.addEventListener("click",()=>{unread=0;document.title="رقیه و محمدحسین یاب";});
+document.addEventListener("click",()=>{unread=0;document.title="چت‌روم مخصوص رقیه و محمدحسین";});
 async function publish(status,note){if(!me){alert("اول بگو کی هستی 👆");return;}
 await pub({who:me,device:device,status:status,note:note||""});
 document.getElementById("custom").value="";}
