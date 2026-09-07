@@ -48,6 +48,12 @@ header p{opacity:.75;font-size:14px}
 .msg.theirs{align-self:flex-end;background:#ffffff14;border:1px solid #ffffff22}
 .msg .nm{font-size:11px;opacity:.65;margin-bottom:2px}
 .msg .tm{font-size:10px;opacity:.5;margin-top:2px}
+#party{position:fixed;inset:0;background:#140b29ee;display:none;align-items:center;justify-content:center;z-index:100;overflow:hidden}
+.gift{background:#ffffff14;border:1px solid #ff7eb3;border-radius:20px;padding:30px 24px;max-width:320px;text-align:center;z-index:2;line-height:2.2;font-size:16px}
+.gift button{margin-top:14px;background:linear-gradient(135deg,#ff7eb3,#ff4d6d);border:none;color:#fff;border-radius:12px;padding:11px 26px;font-size:15px;cursor:pointer;font-weight:bold}
+#fall{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#fall span{position:absolute;top:-40px;animation:drop 3.5s linear infinite}
+@keyframes drop{to{transform:translateY(110vh) rotate(360deg)}}
 footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 </style>
 </head>
@@ -58,6 +64,7 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 <input id="gateInput" inputmode="numeric" maxlength="12" placeholder="••••">
 <button onclick="checkGate()">ورود ✅</button>
 </div></div>
+<div id="party"><div id="fall"></div><div class="gift">🎁🎉<br><b>رقیه!</b><br>این هدیه‌ای از طرف <b>محمدحسین</b> به توئه 🤍<br><small style="opacity:.7">به چت‌روم خصوصی‌تون خوش اومدی 💕</small><br><button onclick="hideParty()">مرسی! 💕</button></div></div>
 <div class="wrap">
 <header>
 <h1>چت‌روم مخصوص رقیه و محمدحسین</h1>
@@ -98,7 +105,9 @@ let locked=localStorage.getItem("yab_locked")==="1";
 let claims={m:null,r:null};
 function fa(n){return String(n).replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);}
 function ago(t){if(!t)return "";const s=Math.floor((Date.now()-t)/1000);if(s<60)return "لحظاتی پیش";if(s<3600)return fa(Math.floor(s/60))+" دقیقه پیش";if(s<86400)return fa(Math.floor(s/3600))+" ساعت پیش";return fa(Math.floor(s/86400))+" روز پیش";}
-function checkGate(){let v=document.getElementById("gateInput").value.trim().replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));if(v===GATE){sessionStorage.setItem("yab_ok","1");document.getElementById("gate").style.display="none";}else{alert("کد اشتباهه 🔒");}}
+function checkGate(){let v=document.getElementById("gateInput").value.trim().replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));if(v===GATE){sessionStorage.setItem("yab_ok","1");document.getElementById("gate").style.display="none";if(!sessionStorage.getItem("yab_party")){sessionStorage.setItem("yab_party","1");showParty();}}else{alert("کد اشتباهه 🔒");}}
+function showParty(){document.getElementById("party").style.display="flex";const em=["💖","🌹","✨","🎁","💕","🌸","🦋","💐","❤️","🍫"];const c=document.getElementById("fall");c.innerHTML="";for(let i=0;i<50;i++){const s=document.createElement("span");s.textContent=em[i%em.length];s.style.left=Math.random()*100+"%";s.style.animationDelay=(Math.random()*2)+"s";s.style.fontSize=(18+Math.random()*26)+"px";c.appendChild(s);}}
+function hideParty(){document.getElementById("party").style.display="none";}
 if(sessionStorage.getItem("yab_ok")==="1"){document.getElementById("gate").style.display="none";}
 async function pub(o){o.at=Date.now();await fetch("https://ntfy.sh/"+TOPIC,{method:"PUT",body:JSON.stringify(o)});}
 function iam(w){
