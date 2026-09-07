@@ -62,10 +62,11 @@ footer{text-align:center;font-size:11px;opacity:.5;margin:22px 0 8px}
 const TOPIC="mhk-rog-yab-x7q2k9zm4p";
 const PRESETS=["💚 خوبم، پیام بده","🔕 الان پیام نده","🚶 بیرونم، برمی‌گردم","📚 سرم شلوغه","😴 استراحت می‌کنم","💬 بیا حرف بزنیم","❤️ دلم برات تنگ شده","🆘 مشکلی پیش اومده، زنگ بزن"];
 let me=localStorage.getItem("yab_me")||"";
+let locked=localStorage.getItem("yab_locked")==="1";
 function fa(n){return String(n).replace(/[0-9]/g,d=>"۰۱۲۳۴۵۶۷۸۹"[d]);}
 function ago(t){if(!t)return "";const s=Math.floor((Date.now()-t)/1000);if(s<60)return "لحظاتی پیش";if(s<3600)return fa(Math.floor(s/60))+" دقیقه پیش";if(s<86400)return fa(Math.floor(s/3600))+" ساعت پیش";return fa(Math.floor(s/86400))+" روز پیش";}
-function iam(w){me=w;localStorage.setItem("yab_me",w);paintWho();}
-function paintWho(){document.getElementById("btnM").classList.toggle("sel",me==="m");document.getElementById("btnR").classList.toggle("sel",me==="r");document.getElementById("cardM").classList.toggle("me",me==="m");document.getElementById("cardR").classList.toggle("me",me==="r");}
+function iam(w){if(locked){alert("هویتت قفل شده 🔒 تو "+(me==="m"?"محمدحسین":"رقیه")+" هستی");return;}me=w;locked=true;localStorage.setItem("yab_me",w);localStorage.setItem("yab_locked","1");paintWho();}
+function paintWho(){document.getElementById("btnM").classList.toggle("sel",me==="m");document.getElementById("btnR").classList.toggle("sel",me==="r");document.getElementById("cardM").classList.toggle("me",me==="m");document.getElementById("cardR").classList.toggle("me",me==="r");if(locked&&me){document.getElementById("btnM").style.opacity=me==="m"?"1":".35";document.getElementById("btnR").style.opacity=me==="r"?"1":".35";}}
 function render(w,d){const W=w==="m"?"M":"R";document.getElementById("st"+W).textContent=d.status||"—";document.getElementById("tx"+W).textContent=d.note||"";document.getElementById("tm"+W).textContent=d.at?ago(d.at):"";}
 async function publish(status,note){if(!me){alert("اول بگو کی هستی 👆");return;}
 await fetch("https://ntfy.sh/"+TOPIC,{method:"PUT",body:JSON.stringify({who:me,status:status,note:note||"",at:Date.now()})});
