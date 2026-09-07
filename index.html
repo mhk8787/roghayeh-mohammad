@@ -145,8 +145,10 @@ await pub({who:me,device:device,status:status,note:note||""});
 document.getElementById("custom").value="";}
 function sendCustom(){const v=document.getElementById("custom").value.trim();if(!v)return;publish("✏️ پیام",v);}
 document.getElementById("chips").innerHTML=PRESETS.map(p=>`<button onclick='publish(${JSON.stringify(p)})'>${p}</button>`).join("");
+function doReset(at){const k="yab_reset_seen";if(localStorage.getItem(k)===String(at))return;localStorage.setItem(k,String(at));localStorage.removeItem("yab_me");localStorage.removeItem("yab_locked");location.reload();}
 async function loadHist(){try{const r=await fetch("https://ntfy.sh/"+TOPIC+"/json?poll=1");const t=await r.text();t.trim().split("\n").forEach(l=>{try{const j=JSON.parse(l);if(!j.message)return;const d=JSON.parse(j.message);
-if(d.type==="claim"&&(d.who==="m"||d.who==="r")){claims[d.who]={device:d.device,at:d.at};}
+if(d.type==="reset"){doReset(d.at);}
+else if(d.type==="claim"&&(d.who==="m"||d.who==="r")){claims[d.who]={device:d.device,at:d.at};}
 else if(d.type==="release"&&(d.who==="m"||d.who==="r")){claims[d.who]=null;}
 else if(d.who==="m"||d.who==="r"){render(d.who,d);addLog(d,true);}
 }catch(e){}});
@@ -155,6 +157,7 @@ paintWho();}catch(e){}}
 function live(){try{const es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.event!=="message"||!d.message)return;const m=JSON.parse(d.message);
 if(m.type==="claim"&&(m.who==="m"||m.who==="r")){claims[m.who]={device:m.device,at:m.at};paintWho();}
 else if(m.type==="release"&&(m.who==="m"||m.who==="r")){claims[m.who]=null;paintWho();}
+else if(m.type==="reset"){doReset(m.at);}
 else if(m.type==="typing"){showTyping(m);}
 else if(m.who==="m"||m.who==="r"){render(m.who,m);addLog(m,false);}
 }catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
