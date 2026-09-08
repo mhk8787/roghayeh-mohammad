@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Vazirmatn,Tahoma,sans-serif}
-body{background:linear-gradient(160deg,#1a1033,#3b1d5d 55%,#0f2027);min-height:100vh;color:#fff;padding:16px}
+body{--bg1:#1a1033;--bg2:#3b1d5d;--bg3:#0f2027;background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));min-height:100vh;color:#fff;padding:16px}
 .wrap{max-width:560px;margin:auto}
 header{text-align:center;padding:22px 10px}
 header h1{font-size:26px;margin-bottom:6px}
@@ -171,6 +171,7 @@ if(claims.m)h+='<button onclick="release(\'m\')">آزاد کردن محمدحس�
 if(claims.r)h+='<button onclick="release(\'r\')">آزاد کردن رقیه</button>';
 h+='<br><button onclick="sendParty()">🎉 جشن برای رقیه</button>';
 h+='<button onclick="sendPic()">😍 نشون دادن عکس</button>';
+h+='<div style="margin-top:6px">🎨 حس و حال تم (فقط تو):<br><button onclick="setTheme(\'love\')">💖</button> <button onclick="setTheme(\'calm\')">🌊</button> <button onclick="setTheme(\'night\')">🌙</button> <button onclick="setTheme(\'happy\')">☀️</button> <button onclick="setTheme(\'wild\')">💜</button></div>';
 document.getElementById("adminBtns").innerHTML=h;
 }else{ab.style.display="none";}
 }
@@ -188,6 +189,9 @@ function cancelCompose(){replyTo=null;editingId=null;const b=document.getElement
 const STICKERS=["💖","❤️","😍","😘","💕","💋","🌹","💐","🥰","😂","🤣","😜","😎","🤪","🎉","🚀","🌟","🔥","👏","🍫","🦋","💯","😭","🥺"];
 async function sendSticker(s){if(!me){alert("اول بگو کی هستی 👆");return;}const m={type:"msg",who:me,device:device,id:"m"+Date.now().toString(36)+Math.floor(Math.random()*999),status:"",note:"",sticker:s,reply:replyTo};await pub(m);addMsg(m,false);cancelCompose();toggleStk(false);}
 function toggleStk(f){const p=document.getElementById("stkPanel");if(!p)return;const show=typeof f==="boolean"?f:p.style.display!=="block";p.style.display=show?"block":"none";}
+const THEMES={love:["#1a1033","#3b1d5d","#0f2027"],calm:["#0b1e3a","#134e5e","#0f2027"],night:["#000000","#1a1a2e","#16213e"],happy:["#3b1d0a","#8a4b08","#1c1005"],wild:["#2e1065","#7c3aed","#0f2027"]};
+function applyTheme(n){const t=THEMES[n]||THEMES.love;const b=document.body.style;b.setProperty("--bg1",t[0]);b.setProperty("--bg2",t[1]);b.setProperty("--bg3",t[2]);}
+async function setTheme(n,share){if(me!=="m"){alert("این آپشن فقط برای محمدحسینه 👑");return;}localStorage.setItem("yab_theme",n);applyTheme(n);if(share!==false)await pub({type:"theme",theme:n});}
 function typing(){if(!me)return;const n=Date.now();if(n-lastType<3000)return;lastType=n;pub({type:"typing",who:me,device:device});}
 function showTyping(m){if(m.device===device||m.who===me)return;const nm=m.who==="m"?"محمدحسین":"رقیه";const el=document.getElementById("typing");if(!el)return;el.textContent="✍️ "+nm+" در حال نوشتن است…";clearTimeout(typeTimer);typeTimer=setTimeout(()=>{el.textContent="";},4000);}
 document.addEventListener("click",()=>{unread=0;document.title="چت‌روم مخصوص رقیه و محمدحسین";});
@@ -203,6 +207,7 @@ if(d.type==="reset"){doReset(d.at);}
 else if(d.type==="claim"&&(d.who==="m"||d.who==="r")){claims[d.who]={device:d.device,at:d.at};}
 else if(d.type==="release"&&(d.who==="m"||d.who==="r")){claims[d.who]=null;}
 else if(d.type==="edit"){applyEdit(d.target,d.status,d.note||"");}
+else if(d.type==="theme"){localStorage.setItem("yab_theme",d.theme);applyTheme(d.theme);}
 else if(d.who==="m"||d.who==="r"){render(d.who,d);addMsg(d,true);}
 }catch(e){}});
 if(me&&!claims[me]){claims[me]={device:device,at:Date.now()};pub({type:"claim",who:me,device:device});}
@@ -216,9 +221,11 @@ else if(m.type==="pic"){showPic();}
 else if(m.type==="vow"){showVow(m.who);}
 else if(m.type==="typing"){showTyping(m);}
 else if(m.type==="edit"){applyEdit(m.target,m.status,m.note||"");}
+else if(m.type==="theme"){localStorage.setItem("yab_theme",m.theme);applyTheme(m.theme);}
 else if(m.who==="m"||m.who==="r"){render(m.who,m);addMsg(m,false);}
 }catch(_){}};es.onopen=()=>{document.getElementById("dot").classList.add("on");document.getElementById("connTx").textContent="متصلیم 💚";};es.onerror=()=>{document.getElementById("dot").classList.remove("on");document.getElementById("connTx").textContent="در حال اتصال…";};}catch(e){setInterval(loadHist,15000);}}
 document.getElementById("stkPanel").innerHTML=STICKERS.map(s=>'<button onclick="sendSticker(\''+s+'\')">'+s+'</button>').join("");
+applyTheme(localStorage.getItem("yab_theme")||"love");
 paintWho();loadHist();live();setInterval(loadHist,60000);
 </script>
 </body>
