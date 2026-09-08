@@ -171,7 +171,7 @@ if(claims.m)h+='<button onclick="release(\'m\')">آزاد کردن محمدحس�
 if(claims.r)h+='<button onclick="release(\'r\')">آزاد کردن رقیه</button>';
 h+='<br><button onclick="sendParty()">🎉 جشن برای رقیه</button>';
 h+='<button onclick="sendPic()">😍 نشون دادن عکس</button>';
-h+='<div style="margin-top:6px">🎨 حس و حال تم (فقط تو):<br><button onclick="setTheme(\'love\')">💖</button> <button onclick="setTheme(\'calm\')">🌊</button> <button onclick="setTheme(\'night\')">🌙</button> <button onclick="setTheme(\'happy\')">☀️</button> <button onclick="setTheme(\'wild\')">💜</button></div>';
+h+='<div style="margin-top:6px">🎨 حس و حال تم (فقط تو):<br><button onclick="setTheme(\'love\')">💖</button> <button onclick="setTheme(\'calm\')">🌊</button> <button onclick="setTheme(\'night\')">🌙</button> <button onclick="setTheme(\'happy\')">☀️</button> <button onclick="setTheme(\'wild\')">💜</button> <button onclick="setTheme(\'sad\')">🩶</button></div>';
 document.getElementById("adminBtns").innerHTML=h;
 }else{ab.style.display="none";}
 }
@@ -189,7 +189,7 @@ function cancelCompose(){replyTo=null;editingId=null;const b=document.getElement
 const STICKERS=["💖","❤️","😍","😘","💕","💋","🌹","💐","🥰","😂","🤣","😜","😎","🤪","🎉","🚀","🌟","🔥","👏","🍫","🦋","💯","😭","🥺"];
 async function sendSticker(s){if(!me){alert("اول بگو کی هستی 👆");return;}const m={type:"msg",who:me,device:device,id:"m"+Date.now().toString(36)+Math.floor(Math.random()*999),status:"",note:"",sticker:s,reply:replyTo};await pub(m);addMsg(m,false);cancelCompose();toggleStk(false);}
 function toggleStk(f){const p=document.getElementById("stkPanel");if(!p)return;const show=typeof f==="boolean"?f:p.style.display!=="block";p.style.display=show?"block":"none";}
-const THEMES={love:["#1a1033","#3b1d5d","#0f2027"],calm:["#0b1e3a","#134e5e","#0f2027"],night:["#000000","#1a1a2e","#16213e"],happy:["#3b1d0a","#8a4b08","#1c1005"],wild:["#2e1065","#7c3aed","#0f2027"]};
+const THEMES={love:["#1a1033","#3b1d5d","#0f2027"],calm:["#0b1e3a","#134e5e","#0f2027"],night:["#000000","#1a1a2e","#16213e"],happy:["#3b1d0a","#8a4b08","#1c1005"],wild:["#2e1065","#7c3aed","#0f2027"],sad:["#0a0e1a","#1c2a3a","#0f1520"]};
 function applyTheme(n){const t=THEMES[n]||THEMES.love;const b=document.body.style;b.setProperty("--bg1",t[0]);b.setProperty("--bg2",t[1]);b.setProperty("--bg3",t[2]);}
 async function setTheme(n,share){if(me!=="m"){alert("این آپشن فقط برای محمدحسینه 👑");return;}localStorage.setItem("yab_theme",n);applyTheme(n);if(share!==false)await pub({type:"theme",theme:n});}
 function typing(){if(!me)return;const n=Date.now();if(n-lastType<3000)return;lastType=n;pub({type:"typing",who:me,device:device});}
